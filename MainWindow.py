@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(296, 240)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.btnSearchSerialPort = QtWidgets.QPushButton(self.centralwidget)
@@ -23,9 +23,12 @@ class Ui_MainWindow(object):
         self.comboPort = QtWidgets.QComboBox(self.centralwidget)
         self.comboPort.setGeometry(QtCore.QRect(30, 10, 111, 22))
         self.comboPort.setObjectName("comboPort")
+        self.btnTestComm = QtWidgets.QPushButton(self.centralwidget)
+        self.btnTestComm.setGeometry(QtCore.QRect(30, 50, 221, 31))
+        self.btnTestComm.setObjectName("btnTestComm")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 296, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -39,3 +42,4 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Collaudo Leonardo L24"))
         self.btnSearchSerialPort.setText(_translate("MainWindow", "Search Port"))
+        self.btnTestComm.setText(_translate("MainWindow", "Test Comm"))
