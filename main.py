@@ -1,6 +1,7 @@
 '''Main module'''
 import sys
 import time
+import platform
 from os import path
 import logging
 import logging.handlers
@@ -11,13 +12,18 @@ import serial
 from MainWindow import Ui_MainWindow
 
 
+
 class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: disable=c-extension-no-member
     ''' Gui class
     '''
+
+
     def __init__(self, parent=None, cnf=None):
         super(MainWindowCollaudo, self).__init__(parent)            # pylint: disable=super-with-arguments
         self.setupUi(self)
         self.comboPort.clear()
+        self.__host_plat = platform.system()
+        print("Collaudo mini centrale in esecuzione su: " + self.__host_plat)
         for port in comports():
             self.comboPort.addItem(port.name)
         self.__setup__()
@@ -32,7 +38,11 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             self.comboPort.addItem(port.name)
 
     def __btnTestCommclick__(self):
-        ser_port_mame = self.comboPort.currentText()
+        ser_port_mame = ''
+        if(self.__host_plat == "Windows"):
+            ser_port_mame = self.comboPort.currentText()
+        else:
+            ser_port_mame = "/dev/" + self.comboPort.currentText()
         ser = serial.Serial(
             port=ser_port_mame,
             baudrate=115200,
