@@ -1,0 +1,45 @@
+#Ignore Eclipse setting
+/.settings/**
+
+#NOT IGNORE files modified byCubeMX
+!/.settings/com.atollic.truestudio.debug.hardware_device.prefs
+
+#Ignore files built by Visual Code
+/.vscode/
+
+#Ignore python venv
+/.venv/
+
+#Ignore python cache
+__pycache__/
+
+#Ignore files built by CubeMX
+[Dd]ebug*/
+[Rr]elease*/
+
+#NOT IGNORE files Released
+![Rr]eleased/
+
+#Ignore thumbnails created by Windows
+Thumbs.db
+
+#Ignore CubeMX setting
+*.launch
+.project
+.mxproject
+.metadata
+
+#NOT IGNORE files with infos setting
+!.cproject
+
+#Ignore DEMO files
+__EXAMPLES__/
+
+#Ignore WIP files
+@*/
+
+#Backup files
+*.bak
+
+#log files
+*.log
