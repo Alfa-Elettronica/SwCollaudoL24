@@ -67,6 +67,34 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         rcv = ser.read_all()
         print(rcv)
         ser.close()
+        self.__decode_command__(rcv)
+        return rcv
+
+    def __decode_command__(self, recv_data):
+        '''Decodifica dati ricevuti'''
+        idx_start = recv_data.index(b'{')
+        idx_stop = recv_data.index(b'}')
+        idx_sep = recv_data.index(b';')
+
+        if idx_start == -1:
+            return -1
+
+        if len(recv_data) < (idx_start + 45):
+            return -2
+
+        if idx_stop == -1:
+            return -3
+
+        str_cmd = recv_data[idx_start : (idx_start+8)]
+        if b"RDSTAT" in str_cmd :
+            payload = recv_data[(idx_sep+1) : (idx_sep+1+32)]
+            stat = payload[0 : payload.index(b'\x00')]
+            str_stat = "0x" + stat.decode('utf-8')
+            int_stat = int(str_stat, 0)
+            print(int_stat)
+
+        return 0
+
 
     def __ser_thread_loop__(self):
         '''Loop thread seriale
