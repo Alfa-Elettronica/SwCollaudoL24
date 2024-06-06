@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
-    <height>289</height>
+    <width>462</width>
+    <height>314</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,7 @@
       <x>30</x>
       <y>10</y>
       <width>111</width>
-      <height>22</height>
+      <height>31</height>
      </rect>
     </property>
    </widget>
@@ -41,7 +41,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>50</y>
+      <y>60</y>
       <width>221</width>
       <height>31</height>
      </rect>
@@ -54,7 +54,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>90</y>
+      <y>100</y>
       <width>221</width>
       <height>31</height>
      </rect>
@@ -67,7 +67,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>130</y>
+      <y>140</y>
       <width>221</width>
       <height>31</height>
      </rect>
@@ -79,10 +79,10 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>280</x>
+      <x>260</x>
       <y>0</y>
-      <width>160</width>
-      <height>243</height>
+      <width>191</width>
+      <height>271</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -179,13 +179,26 @@
      </item>
     </layout>
    </widget>
+   <widget class="QPushButton" name="btn_program_main">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>200</y>
+      <width>221</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Program Main</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>460</width>
+     <width>462</width>
      <height>21</height>
     </rect>
    </property>
