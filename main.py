@@ -28,7 +28,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     STLinkV3_SN = "003500253038511034333935"
     STLinkV2_SN = "48FF6D068680575139451867"
-    
+   
 
     def __init__(self, parent=None, cnf=None):
         super(MainWindowCollaudo, self).__init__(parent)            # pylint: disable=super-with-arguments
@@ -39,7 +39,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         print("Collaudo mini centrale in esecuzione su: " + self.__host_plat)
         for port in comports():
             self.comboPort.addItem(port.name)
-        
+      
         self.__init_st_link_interface__()
         self.__setup__()
         self.__search_stlinks__()
@@ -50,6 +50,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btnStartComm.clicked.connect(self.__start_comm_thread__)
         self.btnStopComm.clicked.connect(self.stop_comm_thread)
         self.btn_program_main.clicked.connect(self.__program_main_micro_collaudo__)
+        self.btn_program_main_def.clicked.connect(self.__program_main_micro_produzione__)
 
     def __read_status__(self):
         '''Lettura stato collaudo
@@ -198,7 +199,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         msg.setIcon(QMessageBox.Critical)
 
         msg.setText(self.st_lint_main.current_error)
-        msg.setInformativeText("Premere \"Ok\" per terminare collaudo scheda, \"Cancel\" per ripetere il test")
+        msg.setInformativeText(
+            "Premere \"Ok\" per terminare collaudo scheda, \"Cancel\" per ripetere il test")
         msg.setWindowTitle("Error")
         # msg.setDetailedText("The details are as follows:")
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
@@ -211,9 +213,12 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             if self.programmazzione_fw_cl_run:
                 self.start_fase_programmazione_fwcl()
                 self.start_fase_programmazione()
-    
+
     def __program_main_micro_collaudo__(self) :
-        self.ProgrammaSt(True, True)
+        self.ProgrammaSt(MainMicro = True, FwCollaudo = True)
+
+    def __program_main_micro_produzione__(self) :
+        self.ProgrammaSt(MainMicro = True, FwCollaudo = False)
 
     def ProgrammaSt(self, MainMicro, FwCollaudo):
         '''Avvia programmazione micro'''
