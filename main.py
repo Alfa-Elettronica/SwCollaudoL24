@@ -25,6 +25,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     programmazzione_fw_cl_run = False
     program_end_error_signal=pyqtSignal()
     program_update_status_signal = pyqtSignal()
+    dut_status_signal = pyqtSignal()
+    dut_int_stat = 0
 
     STLinkV3_SN = "003500253038511034333935"
     STLinkV2_SN = "48FF6D068680575139451867"
@@ -51,6 +53,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btnStopComm.clicked.connect(self.stop_comm_thread)
         self.btn_program_main.clicked.connect(self.__program_main_micro_collaudo__)
         self.btn_program_main_def.clicked.connect(self.__program_main_micro_produzione__)
+        self.dut_status_signal.connect(self.__update_dut_status_ui__)
 
     def __read_status__(self):
         '''Lettura stato collaudo
@@ -85,6 +88,61 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         if len(rcv) != 0:
             self.__decode_command__(rcv)
         return rcv
+    
+    def __update_dut_status_ui__(self) :
+        if self.dut_int_stat & (1 << 0) :
+            self.lbl_test_1.setText("Test keyboard ok")
+        else :
+            self.lbl_test_1.setText("Test keyboard ---")
+        if self.dut_int_stat & (1 << 1) :
+            self.lbl_test_2.setText("Test led ok")
+        else :
+            self.lbl_test_2.setText("Test led ---")
+        if self.dut_int_stat & (1 << 2) :
+            self.lbl_test_3.setText("Test back-light ok")
+        else :
+            self.lbl_test_3.setText("Test back-light ---")
+        if self.dut_int_stat & (1 << 3) :
+            self.lbl_test_4.setText("Test buzzer ok")
+        else :
+            self.lbl_test_4.setText("Test buzzer ---")
+        if self.dut_int_stat & (1 << 4) :
+            self.lbl_test_5.setText("Test tamper ok")
+        else :
+            self.lbl_test_5.setText("Test tamper ---")
+        if self.dut_int_stat & (1 << 5) :
+            self.lbl_test_6.setText("Test input ok")
+        else :
+            self.lbl_test_6.setText("Test input ---")
+        if self.dut_int_stat & (1 << 6) :
+            self.lbl_test_7.setText("Test power ok")
+        else :
+            self.lbl_test_7.setText("Test power ---")
+        if self.dut_int_stat & (1 << 7) :
+            self.lbl_test_8.setText("Test flash mem ok")
+        else :
+            self.lbl_test_8.setText("Test flash mem ---")
+        if self.dut_int_stat & (1 << 8) :
+            self.lbl_test_9.setText("Test eeprom mem ok")
+        else :
+            self.lbl_test_9.setText("Test eeprom mem ---")
+        if self.dut_int_stat & (1 << 9) :
+            self.lbl_test_10.setText("Test radio ok")
+        else :
+            self.lbl_test_10.setText("Test radio ---")
+        if self.dut_int_stat & (1 << 10) :
+            self.lbl_test_11.setText("Test usb ok")
+        else :
+            self.lbl_test_11.setText("Test usb ---")
+        if self.dut_int_stat & (1 << 11) :
+            self.lbl_test_12.setText("Test GSM ok")
+        else :
+            self.lbl_test_12.setText("Test GSM ---")
+        if self.dut_int_stat & (1 << 12) :
+            self.lbl_test_13.setText("GSM INIT ok")
+        else :
+            self.lbl_test_13.setText("GSM INIT ---")
+
 
     def __decode_command__(self, recv_data):
         '''Decodifica dati ricevuti'''
@@ -106,59 +164,9 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             payload = recv_data[(idx_sep+1) : (idx_sep+1+32)]
             stat = payload[0 : payload.index(b'\x00')]
             str_stat = "0x" + stat.decode('utf-8')
-            int_stat = int(str_stat, 0)
-            if int_stat & (1 << 0) :
-                self.lbl_test_1.setText("Test keyboard ok")
-            else :
-                self.lbl_test_1.setText("Test keyboard ---")
-            if int_stat & (1 << 1) :
-                self.lbl_test_2.setText("Test led ok")
-            else :
-                self.lbl_test_2.setText("Test led ---")
-            if int_stat & (1 << 2) :
-                self.lbl_test_3.setText("Test back-light ok")
-            else :
-                self.lbl_test_3.setText("Test back-light ---")
-            if int_stat & (1 << 3) :
-                self.lbl_test_4.setText("Test buzzer ok")
-            else :
-                self.lbl_test_4.setText("Test buzzer ---")
-            if int_stat & (1 << 4) :
-                self.lbl_test_5.setText("Test tamper ok")
-            else :
-                self.lbl_test_5.setText("Test tamper ---")
-            if int_stat & (1 << 5) :
-                self.lbl_test_6.setText("Test input ok")
-            else :
-                self.lbl_test_6.setText("Test input ---")
-            if int_stat & (1 << 6) :
-                self.lbl_test_7.setText("Test power ok")
-            else :
-                self.lbl_test_7.setText("Test power ---")
-            if int_stat & (1 << 7) :
-                self.lbl_test_8.setText("Test flash mem ok")
-            else :
-                self.lbl_test_8.setText("Test flash mem ---")
-            if int_stat & (1 << 8) :
-                self.lbl_test_9.setText("Test eeprom mem ok")
-            else :
-                self.lbl_test_9.setText("Test eeprom mem ---")
-            if int_stat & (1 << 9) :
-                self.lbl_test_10.setText("Test radio ok")
-            else :
-                self.lbl_test_10.setText("Test radio ---")
-            if int_stat & (1 << 10) :
-                self.lbl_test_11.setText("Test usb ok")
-            else :
-                self.lbl_test_11.setText("Test usb ---")
-            if int_stat & (1 << 11) :
-                self.lbl_test_12.setText("Test GSM ok")
-            else :
-                self.lbl_test_12.setText("Test GSM ---")
-            if int_stat & (1 << 12) :
-                self.lbl_test_13.setText("GSM INIT ok")
-            else :
-                self.lbl_test_13.setText("GSM INIT ---")
+            self.dut_int_stat = int(str_stat, 0)
+            self.dut_status_signal.emit()
+
 
         return 0
 
