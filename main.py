@@ -67,7 +67,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         rcv = ser.read_all()
         print(rcv)
         ser.close()
-        self.__decode_command__(rcv)
+        if len(rcv) != 0:
+            self.__decode_command__(rcv)
         return rcv
 
     def __decode_command__(self, recv_data):
@@ -91,7 +92,58 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             stat = payload[0 : payload.index(b'\x00')]
             str_stat = "0x" + stat.decode('utf-8')
             int_stat = int(str_stat, 0)
-            print(int_stat)
+            if int_stat & (1 << 0) :
+                self.lbl_test_1.setText("Test keyboard ok")
+            else :
+                self.lbl_test_1.setText("Test keyboard ---")
+            if int_stat & (1 << 1) :
+                self.lbl_test_2.setText("Test led ok")
+            else :
+                self.lbl_test_2.setText("Test led ---")
+            if int_stat & (1 << 2) :
+                self.lbl_test_3.setText("Test back-light ok")
+            else :
+                self.lbl_test_3.setText("Test back-light ---")
+            if int_stat & (1 << 3) :
+                self.lbl_test_4.setText("Test buzzer ok")
+            else :
+                self.lbl_test_4.setText("Test buzzer ---")
+            if int_stat & (1 << 4) :
+                self.lbl_test_5.setText("Test tamper ok")
+            else :
+                self.lbl_test_5.setText("Test tamper ---")
+            if int_stat & (1 << 5) :
+                self.lbl_test_6.setText("Test input ok")
+            else :
+                self.lbl_test_6.setText("Test input ---")
+            if int_stat & (1 << 6) :
+                self.lbl_test_7.setText("Test power ok")
+            else :
+                self.lbl_test_7.setText("Test power ---")
+            if int_stat & (1 << 7) :
+                self.lbl_test_8.setText("Test flash mem ok")
+            else :
+                self.lbl_test_8.setText("Test flash mem ---")
+            if int_stat & (1 << 8) :
+                self.lbl_test_9.setText("Test eeprom mem ok")
+            else :
+                self.lbl_test_9.setText("Test eeprom mem ---")
+            if int_stat & (1 << 9) :
+                self.lbl_test_10.setText("Test radio ok")
+            else :
+                self.lbl_test_10.setText("Test radio ---")
+            if int_stat & (1 << 10) :
+                self.lbl_test_11.setText("Test usb ok")
+            else :
+                self.lbl_test_11.setText("Test usb ---")
+            if int_stat & (1 << 11) :
+                self.lbl_test_12.setText("Test GSM ok")
+            else :
+                self.lbl_test_12.setText("Test GSM ---")
+            if int_stat & (1 << 12) :
+                self.lbl_test_13.setText("GSM INIT ok")
+            else :
+                self.lbl_test_13.setText("GSM INIT ---")
 
         return 0
 
