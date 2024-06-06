@@ -35,7 +35,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btnSearchSerialPort.clicked.connect(self.__btn_search_comm_click__)
         self.btnTestComm.clicked.connect(self.__btn_test_comm_click__)
         self.btnStartComm.clicked.connect(self.__start_comm_thread__)
-        self.btnStopComm.clicked.connect(self.__stop_comm_thread__)
+        self.btnStopComm.clicked.connect(self.stop_comm_thread)
 
     def __read_status__(self):
         '''Lettura stato collaudo
@@ -163,7 +163,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.ser_thread = threading.Thread(target=self.__ser_thread_loop__)
         self.ser_thread.start()
 
-    def __stop_comm_thread__(self):
+    def stop_comm_thread(self):
         '''Arresta thread comunicazione seriale'''
         self.run_ser_thread = False
         self.btnStartComm.setEnabled(True)
@@ -191,5 +191,6 @@ if __name__ == '__main__':
     logging.info('Application start')
     app = QApplication(sys.argv)
     form = MainWindowCollaudo()
+    app.lastWindowClosed.connect(form.stop_comm_thread)
     form.show()
     app.exec_()
