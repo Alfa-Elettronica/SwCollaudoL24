@@ -2,6 +2,7 @@
 import sys
 import time
 import platform
+import threading
 from os import path
 import logging
 import logging.handlers
@@ -16,10 +17,14 @@ from MainWindow import Ui_MainWindow
 class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: disable=c-extension-no-member
     ''' Gui class
     '''
+    run_ser_thread = False
+    ser_thread = None
+
     def __init__(self, parent=None, cnf=None):
         super(MainWindowCollaudo, self).__init__(parent)            # pylint: disable=super-with-arguments
         self.setupUi(self)
         self.comboPort.clear()
+        self.btnStopComm.setEnabled(False)
         self.__host_plat = platform.system()
         print("Collaudo mini centrale in esecuzione su: " + self.__host_plat)
         for port in comports():
@@ -29,6 +34,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     def __setup__(self):
         self.btnSearchSerialPort.clicked.connect(self.__btn_search_comm_click__)
         self.btnTestComm.clicked.connect(self.__btn_test_comm_click__)
+        self.btnStartComm.clicked.connect(self.__start_comm_thread__)
+        self.btnStopComm.clicked.connect(self.__stop_comm_thread__)
 
     def __read_status__(self):
         '''Lettura stato collaudo
@@ -50,7 +57,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         ser.open()
         ser.isOpen()
         cmd_str = b'{RDSTAT\x00\x00;'
-        for  idx in range(32):
+        for idx in range(32):
             cmd_str = cmd_str + b'\x00'
         cmd_str = cmd_str + b'\x32\x33}'
 
@@ -61,18 +68,36 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         print(rcv)
         ser.close()
 
+    def __ser_thread_loop__(self):
+        '''Loop thread seriale
+        '''
+        while self.run_ser_thread :
+            self. __read_status__()
+            time.sleep(1)
+
+    def __start_comm_thread__(self):
+        '''Avvia thread comunicazione seriale'''
+        self.run_ser_thread = True
+        self.btnStartComm.setEnabled(False)
+        self.btnStopComm.setEnabled(True)
+        self.ser_thread = threading.Thread(target=self.__ser_thread_loop__)
+        self.ser_thread.start()
+
+    def __stop_comm_thread__(self):
+        '''Arresta thread comunicazione seriale'''
+        self.run_ser_thread = False
+        self.btnStartComm.setEnabled(True)
+        self.btnStopComm.setEnabled(False)
+        self.ser_thread.join(timeout=5)
+
     def __btn_search_comm_click__(self):
+        '''Ricarica lista porte seriali'''
         self.comboPort.clear()
         for port in comports():
             self.comboPort.addItem(port.name)
-    
+
     def __btn_test_comm_click__(self):
         self.__read_status__()
-
-    
-
-   
-
 
 
 if __name__ == '__main__':
