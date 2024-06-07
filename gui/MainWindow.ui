@@ -205,7 +205,14 @@
      <item>
       <widget class="QPushButton" name="btn_wr_hw">
        <property name="text">
-        <string>Program HW</string>
+        <string>Program HW Version</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_wr_magic_num">
+       <property name="text">
+        <string>Program EE Status</string>
        </property>
       </widget>
      </item>

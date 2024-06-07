@@ -56,6 +56,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btn_wr_idt.clicked.connect(self.__write_idt__)
         self.btn_wr_cli.clicked.connect(self.__write_cli__)
         self.btn_wr_hw.clicked.connect(self.__write_hwv__)
+        self.btn_wr_magic_num.clicked.connect(self.__write_magic_num__)
         self.dut_status_signal.connect(self.__update_dut_status_ui__)
 
     def __write_idt__(self):
@@ -81,6 +82,43 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         cmd_str = b'{WRIDT\x00\x00\x00;' + idt_b
 
         while(len(cmd_str) < 42) :
+            cmd_str = cmd_str + b'\x00'
+
+        cmd_str = cmd_str + b'\x31\x32}'
+
+        ser.write(cmd_str)
+        # let's wait one second before reading output (let's give device time to answer)
+        time.sleep(0.3)
+        rcv = ser.read_all()
+        print(rcv)
+        ser.close()
+        if len(rcv) != 0:
+            self.__decode_command__(rcv)
+        return rcv
+
+    def __write_magic_num__(self):
+        ser_port_mame = ''
+        if self.__host_plat == "Windows":
+            ser_port_mame = self.comboPort.currentText()
+        else:
+            ser_port_mame = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_mame,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+        num_str = "0xFE"
+        num_b = bytearray()
+        num_b.extend(map(ord, num_str))
+        cmd_str = b'{WRMAG\x00\x00\x00;' + num_b
+
+        while len(cmd_str) < 42 :
             cmd_str = cmd_str + b'\x00'
 
         cmd_str = cmd_str + b'\x31\x32}'
@@ -131,7 +169,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         if len(rcv) != 0:
             self.__decode_command__(rcv)
         return rcv
-    
+
     def __write_hwv__(self):
         ser_port_mame = ''
         if self.__host_plat == "Windows":
@@ -204,8 +242,9 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         if len(rcv) != 0:
             self.__decode_command__(rcv)
         return rcv
-    
+
     def __update_dut_status_ui__(self) :
+        '''Aggiornamento interfaccia grafica'''
         if self.dut_int_stat & (1 << 0) :
             self.lbl_test_1.setText("Test keyboard ok")
         else :
