@@ -76,7 +76,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             ser.close()
         ser.open()
         ser.isOpen()
-        idt_str = "Idt2024001003"
+        idt_str = "ABCDEF0405"
         idt_b = bytearray()
         idt_b.extend(map(ord, idt_str))
         cmd_str = b'{WRIDT\x00\x00\x00;' + idt_b
