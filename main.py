@@ -53,7 +53,121 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btnStopComm.clicked.connect(self.stop_comm_thread)
         self.btn_program_main.clicked.connect(self.__program_main_micro_collaudo__)
         self.btn_program_main_def.clicked.connect(self.__program_main_micro_produzione__)
+        self.btn_wr_idt.clicked.connect(self.__write_idt__)
+        self.btn_wr_cli.clicked.connect(self.__write_cli__)
+        self.btn_wr_hw.clicked.connect(self.__write_hwv__)
         self.dut_status_signal.connect(self.__update_dut_status_ui__)
+
+    def __write_idt__(self):
+        ser_port_mame = ''
+        if self.__host_plat == "Windows":
+            ser_port_mame = self.comboPort.currentText()
+        else:
+            ser_port_mame = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_mame,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+        idt_str = "Idt2024001003"
+        idt_b = bytearray()
+        idt_b.extend(map(ord, idt_str))
+        cmd_str = b'{WRIDT\x00\x00\x00;' + idt_b
+
+        while(len(cmd_str) < 42) :
+            cmd_str = cmd_str + b'\x00'
+
+        cmd_str = cmd_str + b'\x31\x32}'
+
+        ser.write(cmd_str)
+        # let's wait one second before reading output (let's give device time to answer)
+        time.sleep(0.3)
+        rcv = ser.read_all()
+        print(rcv)
+        ser.close()
+        if len(rcv) != 0:
+            self.__decode_command__(rcv)
+        return rcv
+
+    def __write_cli__(self):
+        ser_port_mame = ''
+        if self.__host_plat == "Windows":
+            ser_port_mame = self.comboPort.currentText()
+        else:
+            ser_port_mame = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_mame,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+        cli_str = "0A"
+        cli_b = bytearray()
+        cli_b.extend(map(ord, cli_str))
+        cmd_str = b'{WRCLI\x00\x00\x00;' + cli_b
+
+        while len(cmd_str) < 42 :
+            cmd_str = cmd_str + b'\x00'
+
+        cmd_str = cmd_str + b'\x31\x32}'
+
+        ser.write(cmd_str)
+        # let's wait one second before reading output (let's give device time to answer)
+        time.sleep(0.3)
+        rcv = ser.read_all()
+        print(rcv)
+        ser.close()
+        if len(rcv) != 0:
+            self.__decode_command__(rcv)
+        return rcv
+    
+    def __write_hwv__(self):
+        ser_port_mame = ''
+        if self.__host_plat == "Windows":
+            ser_port_mame = self.comboPort.currentText()
+        else:
+            ser_port_mame = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_mame,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+        ver_str = "0102"
+        ver_b = bytearray()
+        ver_b.extend(map(ord, ver_str))
+        cmd_str = b'{WRHWV\x00\x00\x00;' + ver_b
+
+        while len(cmd_str) < 42 :
+            cmd_str = cmd_str + b'\x00'
+
+        cmd_str = cmd_str + b'\x39\x38}'
+
+        ser.write(cmd_str)
+        # let's wait one second before reading output (let's give device time to answer)
+        time.sleep(0.3)
+        rcv = ser.read_all()
+        print(rcv)
+        ser.close()
+        if len(rcv) != 0:
+            self.__decode_command__(rcv)
+        return rcv
 
     def __read_status__(self):
         '''Lettura stato collaudo
@@ -75,8 +189,10 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         ser.open()
         ser.isOpen()
         cmd_str = b'{RDSTAT\x00\x00;'
-        for idx in range(32):
+
+        while(len(cmd_str) < 42) :
             cmd_str = cmd_str + b'\x00'
+
         cmd_str = cmd_str + b'\x32\x33}'
 
         ser.write(cmd_str)
@@ -167,12 +283,10 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             self.dut_int_stat = int(str_stat, 0)
             self.dut_status_signal.emit()
 
-
         return 0
 
     def __ser_thread_loop__(self):
-        '''Loop thread seriale
-        '''
+        '''Loop thread seriale '''
         while self.run_ser_thread :
             self. __read_status__()
             time.sleep(1)
