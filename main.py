@@ -30,9 +30,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     STLinkV3_SN = "003500253038511034333935"
     STLinkV2_SN = "48FF6D068680575139451867"
-   
 
-    def __init__(self, parent=None, cnf=None):
+    def __init__(self, parent=None):
         super(MainWindowCollaudo, self).__init__(parent)            # pylint: disable=super-with-arguments
         self.setupUi(self)
         self.comboPort.clear()
@@ -80,19 +79,23 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         idt_b.extend(map(ord, idt_str))
         cmd_str = b'{WRIDT\x00\x00\x00;' + idt_b
 
-        while(len(cmd_str) < 42) :
+        while len(cmd_str) < 42 :
             cmd_str = cmd_str + b'\x00'
 
-        cmd_str = cmd_str + b'\x31\x32}'
-
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
         ser.write(cmd_str)
         # let's wait one second before reading output (let's give device time to answer)
         time.sleep(0.3)
         rcv = ser.read_all()
-        print(rcv)
         ser.close()
         if len(rcv) != 0:
-            self.__decode_command__(rcv)
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
         return rcv
 
     def __write_magic_num__(self):
@@ -120,16 +123,20 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         while len(cmd_str) < 42 :
             cmd_str = cmd_str + b'\x00'
 
-        cmd_str = cmd_str + b'\x31\x32}'
-
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
         ser.write(cmd_str)
         # let's wait one second before reading output (let's give device time to answer)
         time.sleep(0.3)
         rcv = ser.read_all()
-        print(rcv)
         ser.close()
         if len(rcv) != 0:
-            self.__decode_command__(rcv)
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
         return rcv
 
     def __write_cli__(self):
@@ -157,16 +164,20 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         while len(cmd_str) < 42 :
             cmd_str = cmd_str + b'\x00'
 
-        cmd_str = cmd_str + b'\x31\x32}'
-
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
         ser.write(cmd_str)
         # let's wait one second before reading output (let's give device time to answer)
         time.sleep(0.3)
         rcv = ser.read_all()
-        print(rcv)
         ser.close()
         if len(rcv) != 0:
-            self.__decode_command__(rcv)
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
         return rcv
 
     def __write_hwv__(self):
@@ -194,16 +205,20 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         while len(cmd_str) < 42 :
             cmd_str = cmd_str + b'\x00'
 
-        cmd_str = cmd_str + b'\x39\x38}'
-
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
         ser.write(cmd_str)
         # let's wait one second before reading output (let's give device time to answer)
         time.sleep(0.3)
         rcv = ser.read_all()
-        print(rcv)
         ser.close()
         if len(rcv) != 0:
-            self.__decode_command__(rcv)
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
         return rcv
 
     def __read_status__(self):
@@ -227,19 +242,23 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         ser.isOpen()
         cmd_str = b'{RDSTAT\x00\x00;'
 
-        while(len(cmd_str) < 42) :
+        while len(cmd_str) < 42 :
             cmd_str = cmd_str + b'\x00'
 
-        cmd_str = cmd_str + b'\x32\x33}'
-
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
         ser.write(cmd_str)
         # let's wait one second before reading output (let's give device time to answer)
         time.sleep(0.3)
         rcv = ser.read_all()
-        print(rcv)
         ser.close()
         if len(rcv) != 0:
-            self.__decode_command__(rcv)
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
         return rcv
 
     def __update_dut_status_ui__(self) :
@@ -313,13 +332,24 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         if idx_stop == -1:
             return -3
 
-        str_cmd = recv_data[idx_start : (idx_start+8)]
+        crch = recv_data[idx_start + 42].to_bytes(1)
+        crcl = recv_data[idx_start + 43].to_bytes(1)
+        buff_crc = self.__calcola_crc16__(42, recv_data)
+
+        if (crch != buff_crc[0]) or (crcl != buff_crc[1]) :
+            return -4
+
+        str_cmd = recv_data[idx_start : (idx_start + 8)]
+
         if b"RDSTAT" in str_cmd :
             payload = recv_data[(idx_sep+1) : (idx_sep+1+32)]
             stat = payload[0 : payload.index(b'\x00')]
             str_stat = "0x" + stat.decode('utf-8')
             self.dut_int_stat = int(str_stat, 0)
             self.dut_status_signal.emit()
+        else :
+            if not b"OK" in recv_data  :
+                return -5
 
         return 0
 
@@ -352,6 +382,43 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     def __btn_test_comm_click__(self):
         self.__read_status__()
+
+    def __calcola_crc16__(self, b_len, buf):
+        cy = int(0)
+        cy2 = int(0)
+        crch = int(255)
+        crcl = int(255)
+        if b_len < 65535 :
+            for x in range(b_len):
+                crcl = (buf[x]) ^ crcl
+                for _ in range(8) :
+                    cy = crch & 1
+                    crch = crch // 2
+                    cy2 = crcl & 1
+                    crcl = (crcl // 2) + cy * 128
+                    if cy2 == 1 :
+                        crch = crch ^ 0xA0
+                        crcl = crcl ^ 0x01
+        return [crch.to_bytes(1), crcl.to_bytes(1)]
+
+    def __calcola_crc16_recv__(self, b_len, buf):
+        cy = int(0)
+        cy2 = int(0)
+        crch = int(255)
+        crcl = int(255)
+        if b_len < 65535 :
+            for x in range(b_len):
+                crcl = (buf[x]) ^ crcl
+                for _ in range(8) :
+                    cy = crch & 1
+                    crch = crch // 2
+                    cy2 = crcl & 1
+                    crcl = (crcl // 2) + cy * 128
+                    if cy2 == 1 :
+                        crch = crch ^ 0xA0
+                        crcl = crcl ^ 0x01
+        return [crch, crcl]
+
 
     def ProgrammaStEndError(self):
         '''Gestione errore programmazione flash micro'''
@@ -392,10 +459,12 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         else :
             fwpath="ComModGsm.hex"
             stlink_sn=self.STLinkV2_SN
-        self.st_lint_main.Program('C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe',
+        self.st_lint_main.Program(
+            'C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe',
                                   fwpath, "8000", "0x8000000", stlink_sn, 0)
-      
+
     def ProgrammaStUpdateStatus(self):
+        '''Aggiornamento stato programmazione'''
         if self.st_lint_main.stato_programmazione.cli_ok:
             print("st.stato_programmazione.cli_ok")
 
@@ -409,14 +478,6 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         if self.st_lint_main.stato_programmazione.fw_ok:
             print("st.stato_programmazione.fw_ok")
 
-    def ProgrammaSt_fwcl(self):
-        self.programmazzione_fw_cl_run=True
-        self.st_lint_main.Program(self.Impostazioni["cli_st_path"],self.fwcl,self.Impostazioni["frequency"],self.Impostazioni["address_memory"],self.Impostazioni["st_ser"])
-        print("programmazione fw collaudo")
-        if not self.collaudo_manuale:
-            self.pushButton_program.setDisabled(True)
-            self.pushButton_program_fwcl.setDisabled(True)
-
     def __init_st_link_interface__(self):
         self.st_lint_main=ProgrammatoreSt(ProgramEndErr=self.program_end_error_signal.emit,
                                           ProgramUpdateStatus=self.program_update_status_signal.emit)
@@ -427,7 +488,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     def __search_stlinks__(self) :
         st_link_list = self.st_lint_main.list_of_all_stlink('C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe')
         print(st_link_list)
-        
+
 
 if __name__ == '__main__':
     filename = path.join(path.dirname(path.abspath(__file__)), 'LeonardoL24.log')
