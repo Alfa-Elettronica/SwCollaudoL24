@@ -41,7 +41,6 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         print("Collaudo mini centrale in esecuzione su: " + self.__host_plat)
         for port in comports():
             self.comboPort.addItem(port.name)
-      
         self.__init_st_link_interface__()
         self.__setup__()
         self.__search_stlinks__()
@@ -294,9 +293,9 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         else :
             self.lbl_test_12.setText("Test GSM ---")
         if self.dut_int_stat & (1 << 12) :
-            self.lbl_test_13.setText("GSM INIT ok")
+            self.lbl_test_13.setText("Load GSM default ok")
         else :
-            self.lbl_test_13.setText("GSM INIT ---")
+            self.lbl_test_13.setText("Load GSM default ---")
 
 
     def __decode_command__(self, recv_data):
