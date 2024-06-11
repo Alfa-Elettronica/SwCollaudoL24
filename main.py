@@ -5,7 +5,6 @@ import platform
 import threading
 import logging
 import logging.handlers
-import pythoncom
 from os import path
 import serial
 from PyQt5 import QtWidgets
@@ -24,8 +23,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     run_ser_thread = False
     ser_thread = None
     st_lint_main = None
+    st_lint_gsm = None
     pr_cyp = None
-    programmazzione_fw_cl_run = False
     program_end_error_signal=pyqtSignal()
     program_update_status_signal = pyqtSignal()
     dut_status_signal = pyqtSignal()
@@ -59,6 +58,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btnStopComm.clicked.connect(self.stop_comm_thread)
         self.btn_program_main.clicked.connect(self.__program_main_micro_collaudo__)
         self.btn_program_main_def.clicked.connect(self.__program_main_micro_produzione__)
+        self.btn_prog_micro_gsm.clicked.connect(self.__program_main_micro_gsm__)
         self.btn_wr_idt.clicked.connect(self.__write_idt__)
         self.btn_wr_cli.clicked.connect(self.__write_cli__)
         self.btn_wr_hw.clicked.connect(self.__write_hwv__)
@@ -446,8 +446,25 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         if retval == 0x00000400:
             print("Error ret val 0x00000400")
         else:
-            if self.programmazzione_fw_cl_run:
-                self.start_fase_programmazione_fwcl()
+            self.start_fase_programmazione()
+        
+    def ProgrammaStGsmEndError(self):
+        '''Gestione errore programmazione flash micro'''
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+
+        msg.setText(self.st_lint_main.current_error)
+        msg.setInformativeText(
+            "Premere \"Ok\" per terminare collaudo scheda, \"Cancel\" per ripetere il test")
+        msg.setWindowTitle("Error")
+        # msg.setDetailedText("The details are as follows:")
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        # msg.buttonClicked.connect(msgbtn)
+        retval = msg.exec_()
+        print("value of pressed message box button:", retval)
+        if retval == 0x00000400:
+            print("Error ret val 0x00000400")
+        else:
                 self.start_fase_programmazione()
 
     def __program_main_micro_collaudo__(self) :
@@ -456,18 +473,21 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     def __program_main_micro_produzione__(self) :
         self.ProgrammaSt(MainMicro = True, FwCollaudo = False)
 
+    def __program_main_micro_gsm__(self) :
+        self.ProgrammaSt(MainMicro = False, FwCollaudo = False)
+
     def ProgrammaSt(self, MainMicro, FwCollaudo):
         '''Avvia programmazione micro'''
-        self.programmazzione_fw_cl_run = False
+
         if MainMicro :
+            stlink_sn=self.STLinkV3_SN
             if FwCollaudo :
                 fwpath = "collaudo_mini_centrale.hex"
             else :
                 fwpath = "mini_centrale.hex"
-            stlink_sn=self.STLinkV3_SN
         else :
-            fwpath="ComModGsm.hex"
             stlink_sn=self.STLinkV2_SN
+            fwpath="ComModGsm.hex"
         self.st_lint_main.Program(
             'C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe',
                                   fwpath, "8000", "0x8000000", stlink_sn, 0)
@@ -492,7 +512,6 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
                                         ProgramUpdateStatus=self.program_update_status_signal.emit)
         self.program_end_error_signal.connect(self.ProgrammaStEndError)
         self.program_update_status_signal.connect(self.ProgrammaStUpdateStatus)
-        self.programmazzione_fw_cl_run=False
 
     def __search_stlinks__(self) :
         st_link_list = self.st_lint_main.list_of_all_stlink('C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe')

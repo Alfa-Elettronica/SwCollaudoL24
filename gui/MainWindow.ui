@@ -161,6 +161,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btn_prog_micro_gsm">
+       <property name="text">
+        <string>Program GSM Produzione</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnTestComm">
        <property name="text">
         <string>Test Comm</string>
