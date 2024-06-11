@@ -5,6 +5,7 @@ import platform
 import threading
 import logging
 import logging.handlers
+import pythoncom
 from os import path
 import serial
 from PyQt5 import QtWidgets
@@ -12,6 +13,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox          # pylint: disable
 from PyQt5.QtCore import pyqtSignal                            # pylint: disable=no-name-in-module
 from serial.tools.list_ports import comports
 from programmatore_st import ProgrammatoreSt
+import programmatore_cypress
 from MainWindow import Ui_MainWindow
 
 
@@ -22,6 +24,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     run_ser_thread = False
     ser_thread = None
     st_lint_main = None
+    pr_cyp = None
     programmazzione_fw_cl_run = False
     program_end_error_signal=pyqtSignal()
     program_update_status_signal = pyqtSignal()
@@ -30,6 +33,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     STLinkV3_SN = "003500253038511034333935"
     STLinkV2_SN = "48FF6D068680575139451867"
+
+    # pythoncom.CoInitialize()
 
     def __init__(self, parent=None):
         super(MainWindowCollaudo, self).__init__(parent)            # pylint: disable=super-with-arguments
@@ -41,6 +46,9 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         for port in comports():
             self.comboPort.addItem(port.name)
         self.__init_st_link_interface__()
+        self.pr_cyp=programmatore_cypress.ProgrammatoreCypress()
+        self.pr_cyp.end_program.connect(self.__end_fase_programmazione_cypress__)
+        self.pr_cyp.program_bar.connect(self.__update_progress_bar_cypress__)
         self.__setup__()
         self.__search_stlinks__()
 
@@ -55,6 +63,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btn_wr_cli.clicked.connect(self.__write_cli__)
         self.btn_wr_hw.clicked.connect(self.__write_hwv__)
         self.btn_wr_magic_num.clicked.connect(self.__write_magic_num__)
+        self.btn_prog_cypress.clicked.connect(self.__start_fase_programmazione_cypress__)
         self.dut_status_signal.connect(self.__update_dut_status_ui__)
 
     def __write_idt__(self):
@@ -480,7 +489,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     def __init_st_link_interface__(self):
         self.st_lint_main=ProgrammatoreSt(ProgramEndErr=self.program_end_error_signal.emit,
-                                          ProgramUpdateStatus=self.program_update_status_signal.emit)
+                                        ProgramUpdateStatus=self.program_update_status_signal.emit)
         self.program_end_error_signal.connect(self.ProgrammaStEndError)
         self.program_update_status_signal.connect(self.ProgrammaStUpdateStatus)
         self.programmazzione_fw_cl_run=False
@@ -488,6 +497,18 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
     def __search_stlinks__(self) :
         st_link_list = self.st_lint_main.list_of_all_stlink('C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin\\STM32_Programmer_CLI.exe')
         print(st_link_list)
+
+    def __end_fase_programmazione_cypress__(self, err):
+        print("__end_fase_programmazione_cypress__" + err)
+
+    def __update_progress_bar_cypress__(self, val:int):
+        print(val)
+
+    def __start_fase_programmazione_cypress__(self):
+        '''Avvia programmazione micro tastiera'''
+        print("start programmazione tastiera")
+        self.pr_cyp.set_fw_path('C:\\Users\\donald.fontanelli\\Documents\\Progetti\\Collaudi\\VimacL24\\SwCollaudoL24\\fw_tastiera.hex')
+        self.pr_cyp.start()
 
 
 if __name__ == '__main__':
