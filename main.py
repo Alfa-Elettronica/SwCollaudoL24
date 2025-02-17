@@ -64,6 +64,7 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btn_wr_hw.clicked.connect(self.__write_hwv__)
         self.btn_wr_magic_num.clicked.connect(self.__write_magic_num__)
         self.btn_prog_cypress.clicked.connect(self.__start_fase_programmazione_cypress__)
+        self.btn_wr_cert1.clicked.connect(self.__btn_wr_cert1_click__)
         self.dut_status_signal.connect(self.__update_dut_status_ui__)
 
     def __write_idt__(self):
@@ -229,6 +230,57 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         else :
             print('No response')
         return rcv
+    
+
+    def __wr_cert1__(self):
+        client_cert = "-----BEGIN CERTIFICATE-----\r\nMIIDWTCCAkGgAwIBAgIUe5jM1v1Ps8cI4QMftNePg2eiLuAwDQYJKoZIhvcNAQEL\r\nBQAwTTFLMEkGA1UECwxCQW1hem9uIFdlYiBTZXJ2aWNlcyBPPUFtYXpvbi5jb20g\r\nSW5jLiBMPVNlYXR0bGUgU1Q9V2FzaGluZ3RvbiBDPVVTMB4XDTIzMDcwNzA4MjI1\r\nMVoXDTQ5MTIzMTIzNTk1OVowHjEcMBoGA1UEAwwTQVdTIElvVCBDZXJ0aWZpY2F0\r\nZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMA3VKfjT6fDhvVOZWJ0\r\n1pjPT9oL4bKaVUs1tv4jvDD4J5DixEVaRei/Rctt7yvOcxI0eJ7AiA9hn8qZGoUX\r\n5Sk32Adh8ycNmFDU6WY+8W4FTkMCTgdT+4cj1clImtsNLkOcNWIFN1+aofMBRZ9W\r\nb+hqOGj8BHbHMFNIaYrCSr68tXPdDQ7YeCODeOPQ/G4u7OUrt8ChXyDpki2ry4Em\r\nBPWoNjbseOSiS4NYPKumq6jhKSs5LUe20ePxy29GMJkto+x1BskZOtVFU81c9xj6\r\nmIRL0r6VTEIoTJyZFyFXJv8Ow4vdzeSPp/KzTcmAYDLBdsfz8xs3LprhkIJu7Ur5\r\n7h8CAwEAAaNgMF4wHwYDVR0jBBgwFoAUIyuhjCHkrPCUa7woub0GF/HHvQAwHQYD\r\nVR0OBBYEFDq4Ob+pDT8FBHGpJcpUYC1oEN4jMAwGA1UdEwEB/wQCMAAwDgYDVR0P\r\nAQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4IBAQA5AKi0o0X1w6D2NgCpMDi/C0tZ\r\nxT+gGqpIS7DGyo/1iLFuN0vcQ91Z5Uh+OfAuc1l9AhPRRINhcIk3XAXChOVlcTGE\r\na0XHCjV7O63E4MWN/jNEqf0F1rI61mdq9e3CFrlzDBNiIdj+l8VuptoNI38jdz98\r\nvNhXlC7qMPnWcwl9w8Ygy84ab5rTS8cwPgAnrLDkualZyGL1E0KmjowkIJFNgdJB\r\nDNXWvzR1Uj73nmY+Hgkt9jl7zsTiFLqhWQgKU2OfjPXJIQriww1veiSxkyBitb0Q\r\nJyot72zoowS37k0HF8x/GSS75U79sNEFgpFRLb0wQO+POJ4nwvNG5USbd54A\r\n-----END CERTIFICATE-----"
+        ser_port_mame = ''
+        if self.__host_plat == "Windows":
+            ser_port_mame = self.comboPort.currentText()
+        else:
+            ser_port_mame = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_mame,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+
+        idx_start = 0
+        bytes_to_transfer = len(client_cert)
+
+        tx_size = 512
+        while(bytes_to_transfer > 0):
+            tx_size = min(tx_size, bytes_to_transfer)
+            cert_str = client_cert[idx_start : idx_start + tx_size]
+            cert_b = bytearray()
+            cert_b.extend(map(ord, cert_str))
+            cmd_str = b'{WRCERT\x00\x00;' + b'\x01' + idx_start.to_bytes(2, 'little') + tx_size.to_bytes(2, 'little')
+            cmd_str = cmd_str + cert_b
+            buff_crc = self.__calcola_crc16__(len(cmd_str), cmd_str)
+            cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
+            ser.write(cmd_str)
+            # let's wait one second before reading output (let's give device time to answer)
+            time.sleep(0.3)
+            rcv = ser.read_all()            
+            idx_start = idx_start + tx_size
+            bytes_to_transfer = bytes_to_transfer - tx_size
+            if len(rcv) != 0:
+                if self.__decode_command__(rcv) == 0:
+                    print(rcv)
+                else :
+                    print('Decode error')
+            else :
+                print('No response')
+        
+        ser.close()
+        return rcv
+
 
     def __read_status__(self):
         '''Lettura stato collaudo
@@ -391,6 +443,9 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     def __btn_test_comm_click__(self):
         self.__read_status__()
+
+    def __btn_wr_cert1_click__(self):
+        self.__wr_cert1__()
 
     def __calcola_crc16__(self, b_len, buf):
         cy = int(0)
