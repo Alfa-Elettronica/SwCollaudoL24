@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>464</width>
-    <height>525</height>
+    <height>634</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -146,7 +146,7 @@
       <x>20</x>
       <y>90</y>
       <width>231</width>
-      <height>381</height>
+      <height>471</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -240,7 +240,21 @@
      <item>
       <widget class="QPushButton" name="btn_wr_cert1">
        <property name="text">
-        <string>WRITE CERT 1</string>
+        <string>TX CERT 1 TO uCc</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_tx_cert1">
+       <property name="text">
+        <string>TX CERT 1 TO uCm</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_tx_cert1_modem">
+       <property name="text">
+        <string>TX CERT 1 TO MODEM</string>
        </property>
       </widget>
      </item>
