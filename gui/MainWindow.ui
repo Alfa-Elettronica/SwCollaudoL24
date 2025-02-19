@@ -238,6 +238,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btn_start_modem">
+       <property name="text">
+        <string>CONFIG MODEM SMS CALL</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btn_wr_cert1">
        <property name="text">
         <string>TX CERT 1 TO uCc</string>
@@ -297,6 +304,13 @@
       <widget class="QPushButton" name="btn_tx_cert3_modem">
        <property name="text">
         <string>TX CERT 3 TO MODEM</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_start_modem_mqtt">
+       <property name="text">
+        <string>CONFIG MODEM MQTT</string>
        </property>
       </widget>
      </item>

@@ -73,6 +73,8 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
         self.btn_wr_cert3.clicked.connect(self.__btn_wr_cert3_click__)
         self.btn_tx_cert3.clicked.connect(self.__btn_tx_cert3_click__)
         self.btn_tx_cert3_modem.clicked.connect(self.__btn_tx_cert3_to_modem_click__)
+        self.btn_start_modem.clicked.connect(self.__btn_start_modem_click__)
+        self.btn_start_modem_mqtt.clicked.connect(self.__btn_start_mqtt_click__)
         self.dut_status_signal.connect(self.__update_dut_status_ui__)
 
     def __write_idt__(self):
@@ -437,6 +439,18 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             str_stat = "0x" + stat.decode('utf-8')
             self.dut_int_stat = int(str_stat, 0)
             self.dut_status_signal.emit()
+        elif b"STMODM" in str_cmd :
+            payload = recv_data[(idx_sep+1) : (idx_sep+1+32)]
+            stat = payload[0 : payload.index(b'\x00')]
+            str_stat = "0x" + stat.decode('utf-8')
+            self.dut_int_stat = int(str_stat, 0)
+            self.dut_status_signal.emit()
+        elif b"STMQTT" in str_cmd :
+            payload = recv_data[(idx_sep+1) : (idx_sep+1+32)]
+            stat = payload[0 : payload.index(b'\x00')]
+            str_stat = "0x" + stat.decode('utf-8')
+            self.dut_int_stat = int(str_stat, 0)
+            self.dut_status_signal.emit()
         else :
             if not b"OK" in recv_data  :
                 return -5
@@ -499,6 +513,12 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
 
     def __btn_tx_cert3_to_modem_click__(self):
         self.__tx_cert_to_modem__()
+
+    def __btn_start_modem_click__(self):
+        self.__cfg_modem_sms_call__()
+
+    def __btn_start_mqtt_click__(self):
+        self.__cfg_modem_mqtt__()
 
     def __calcola_crc16__(self, b_len, buf):
         cy = int(0)
@@ -615,6 +635,82 @@ class MainWindowCollaudo(QtWidgets.QMainWindow, Ui_MainWindow):     # pylint: di
             print('No response')
         return rcv
 
+    def __cfg_modem_sms_call__(self):
+        ser_port_name = ''
+        if self.__host_plat == "Windows":
+            ser_port_name = self.comboPort.currentText()
+        else:
+            ser_port_name = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_name,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+        cmd_str = b'{STMODM\x00\x00;'
+
+        while len(cmd_str) < 42 :
+            cmd_str = cmd_str + b'\x00'
+
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
+        ser.write(cmd_str)
+        # let's wait one second before reading output (let's give device time to answer)
+        time.sleep(0.3)
+        rcv = ser.read_all()
+        ser.close()
+        if len(rcv) != 0:
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
+        return rcv
+    
+    def __cfg_modem_mqtt__(self):
+        ser_port_name = ''
+        if self.__host_plat == "Windows":
+            ser_port_name = self.comboPort.currentText()
+        else:
+            ser_port_name = "/dev/" + self.comboPort.currentText()
+        ser = serial.Serial(
+            port=ser_port_name,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS
+        )
+        if ser.isOpen():
+            ser.close()
+        ser.open()
+        ser.isOpen()
+        cmd_str = b'{STMQTT\x00\x00;'
+
+        while len(cmd_str) < 42 :
+            cmd_str = cmd_str + b'\x00'
+
+        buff_crc = self.__calcola_crc16__(42, cmd_str)
+        cmd_str = cmd_str + buff_crc[0] + buff_crc[1] + b'}'
+        ser.write(cmd_str)
+        # let's wait one second before reading output (let's give device time to answer)
+        time.sleep(0.3)
+        rcv = ser.read_all()
+        ser.close()
+        if len(rcv) != 0:
+            if self.__decode_command__(rcv) == 0:
+                print(rcv)
+            else :
+                print('Decode error')
+        else :
+            print('No response')
+        return rcv
+    
     def __tx_cert_to_modem__(self):
         ser_port_name = ''
         if self.__host_plat == "Windows":
