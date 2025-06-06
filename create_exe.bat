@@ -1,0 +1,1 @@
+ pyinstaller --onefile  --name=ColloaudoLeonardoL24 --noconsole main.py
